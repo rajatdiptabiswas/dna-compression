@@ -1,6 +1,6 @@
 # DNA Compression Research
 
-Analyzing different compression algorithms for genomic sequencing data 🧬
+Analyzing different compression algorithms for genomic sequencing data
 
 The  Jupyter Notebooks in the repository contain further information
 
@@ -99,7 +99,7 @@ The compression ratio for first order dynamic markov compression is **26.78%**
 
 See also the list of [contributors](https://github.com/rajatdiptabiswas/dna-compression/graphs/contributors) who participated in this project.
 
-## Acknowledgments
+## Acknowledgements
 
 - [NCBI](https://www.ncbi.nlm.nih.gov) | The National Center for Biotechnology Information
 - [ROSALIND](http://rosalind.info/glossary/) | An educational resource and web project for learning bioinformatics through problem solving and computer programming
