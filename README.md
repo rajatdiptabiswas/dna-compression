@@ -1,6 +1,6 @@
 # DNA Compression Research
 
-Analyzing different compression algorithms for genomic sequencing data
+Analyzing compression algorithms for genomic sequencing data
 
 The  Jupyter Notebooks in the repository contain further information
 
@@ -8,9 +8,7 @@ The  Jupyter Notebooks in the repository contain further information
 - **`dna-sample-analysis.ipynb`** - Analyzes the protein sequence in `data/sample.fa` and gives information about the frequency of different nucleobases in the sample FASTA sequence
 - **`dynamic-markov-compression.ipynb`** - Implements ***first-order dynamic Markov compression*** algorithm proposed in the paper by G. V. Cormack and R. N. Horspool [<sup>[1]</sup>](#1) to find the compression ratio on the genomic data of a dengue virus `data/dengue.fa`
 
-## Algorithms
-
-### Dynamic Markov Compression
+## Dynamic Markov Compression
 
 Dynamic Markov Compression (DMC) uses predictive arithmetic coding similar to the prediction by partial matching (PPM), except that the input is predicted one bit at a time (rather than one byte at a time). DMC has a good compression ratio and moderate speed, similar to PPM, but requires somewhat more memory and is not widely implemented.
 
@@ -72,7 +70,7 @@ matrix([[0.12725632, 0.07761733, 0.07851986, 0.066787  , 0.09566787, 0.05415162,
 </p>
 
 <p align="center">
-  <i><b>Figure: </b>Heatmap representation of the transition matrix for k-order markov chain (k = 2)</i>
+  <i><b>Figure: </b>Heatmap representation of the transition matrix for k-th order markov chain (k = 2)</i>
 </p>
 
 #### Compression results using `dmc.c`
