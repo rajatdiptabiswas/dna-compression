@@ -28,7 +28,7 @@ The decoder will generate the same statistical properties that the encoder is us
 
 ## Results 
 
-#### Contents of the sample file 
+### Contents of the sample file 
 
 `head -n 10 data/dengue.fasta`
 ```
@@ -44,7 +44,26 @@ AGAGGAAAATCACTTTTGTTTAAGACCTCTGCAGGTGTCAACATGTGCACCCTTATTGCAATGGATTTGG
 GAGAGTTATGTGAGGACACAATGACCTACAAATGCCCCCGGATCACTGAGACGGAACCAGATGACGTTGA
 ```
 
-#### Markov chain model created using the `HOMarkov` library
+### Markov chain model created using the `HOMarkov` library
+
+#### k = 1
+
+```
+matrix([[0.32340922, 0.21015762, 0.25977817, 0.20665499],
+        [0.40223214, 0.23348214, 0.11651786, 0.24776786],
+        [0.35234657, 0.18050542, 0.28411552, 0.18303249],
+        [0.19147084, 0.21627502, 0.36205396, 0.23020017]])
+```
+<p align="center">
+  <img width="80%" src="https://github.com/rajatdiptabiswas/dna-compression/blob/master/images/k%3D1-markov-dengue.png">
+</p>
+
+<p align="center">
+  <i><b>Figure 1: </b>Heatmap representation of the transition matrix for k-th order markov chain (k = 1)</i>
+</p>
+
+
+#### k = 2
 
 ```
 matrix([[0.12725632, 0.07761733, 0.07851986, 0.066787  , 0.09566787, 0.05415162, 0.02617329, 0.03790614, 0.10469314, 0.04241877, 0.06588448, 0.03971119, 0.0433213 , 0.03158845, 0.07851986, 0.02978339],
@@ -70,10 +89,10 @@ matrix([[0.12725632, 0.07761733, 0.07851986, 0.066787  , 0.09566787, 0.05415162,
 </p>
 
 <p align="center">
-  <i><b>Figure: </b>Heatmap representation of the transition matrix for k-th order markov chain (k = 2)</i>
+  <i><b>Figure 2: </b>Heatmap representation of the transition matrix for k-th order markov chain (k = 2)</i>
 </p>
 
-#### Compression results using `dmc.c`
+### Compression results using `dmc.c`
 
 `gcc ./library/dmc.c -o dmc`  
 `./dmc c ./data/dengue.fa`
