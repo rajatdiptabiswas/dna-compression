@@ -4,9 +4,12 @@ Analyzing compression algorithms for genomic sequencing data
 
 The  Jupyter Notebooks in the repository contain further information
 
-- **`dna-notes.ipynb`** - Notes made from different research papers and websites
-- **`dna-sample-analysis.ipynb`** - Analyzes the protein sequence in `data/sample.fa` and gives information about the frequency of different nucleobases in the sample FASTA sequence
-- **`dynamic-markov-compression.ipynb`** - Implements ***first-order dynamic Markov compression*** algorithm proposed in the paper by G. V. Cormack and R. N. Horspool [<sup>[1]</sup>](#1) to find the compression ratio on the genomic data of a dengue virus `data/dengue.fa`
+- **`dna-notes.ipynb`** - Notes made from different research papers and websites.
+- **`dna-sample-analysis.ipynb`** - Analyzes the protein sequence in `data/sample.fa` and gives information about the frequency of different nucleobases in the sample FASTA sequence.
+- **`dmc-compress-test.ipynb`** - Compresses `data/human_data.txt` to `data/human_data_compressed` and then decompresses it back to `data/human_data_uncompressed.txt` using `library/dmc.c`. Gives implementation details on how to compress and decompress files using the C implementation used in the paper[<sup>[1]</sup>](#1). Calculates the compression ratio.
+- **`dynamic-markov-compression.ipynb`** - Implements ***dynamic Markov compression*** algorithm proposed in the paper by G. V. Cormack and R. N. Horspool [<sup>[1]</sup>](#1) to find the compression ratio on the genomic data of a dengue virus `data/dengue.fa`. Visualizations made using the `HOMarkov` library.
+- **`markov-arithmetic-implementation.ipynb`** - Custom personal implementation of a k-th order Markov chain to compress a string using arithmetic coding.
+
 
 ## Dynamic Markov Compression
 
@@ -17,6 +20,14 @@ Implementing ***Markov modeling*** and ***Guazzo's arithmetic coding*** together
 All compression algorithms rely on a priori assumption of the data. The new direction taken here is that an algorithmic attempt is used to discover a Markov chain model that describes the data. If it can be created using the first part of the data then it can be used to predict forthcoming characters.
 
 The decoder will generate the same statistical properties that the encoder is using for the data as the decoder is decoding it.
+
+## Arithmetic Coding
+
+Arithmetic coding is a data compression technique that encodes data by creating a code string which represents a fractional value on the number line between 0 and 1. The coding algorithm is symbolwise recursive; i.e. it operates upon and encodes (decodes) one data symbol per iteration or recursion. 
+
+On each recursion, the algorithm successively partitions an interval of the number line between 0 and 1, and retains one of the partitions as the new interval. Thus, the algorithm successively deals with smaller intervals, and the code string, viewed as a magnitude, lies in each of the nested intervals. 
+
+The data string is recovered by using magnitude comparisons on the code string to recreate how the encoder must have successively partitioned and retained each nested subinterval.
 
 ## Getting started
 
@@ -100,7 +111,7 @@ matrix([[0.12725632, 0.07761733, 0.07851986, 0.066787  , 0.09566787, 0.05415162,
 using 16777216 bytes of predictor memory
 compress done: bytes in 10736, bytes out 2876, ratio 0.267884
 ```
-The compression ratio for first order dynamic markov compression is **26.78%**
+The compression ratio for dynamic markov compression is **26.78%**
 
 ## Built with
 * [Biopython](https://biopython.org) - The Biopython Project is an open-source collection of non-commercial Python tools for computational biology and bioinformatics, created by an international association of developers
@@ -133,3 +144,5 @@ See also the list of [contributors](https://github.com/rajatdiptabiswas/dna-comp
 **[2]** Wandelt, Sebastian & Bux, Marc & Leser, Ulf, **"Trends in Genome Compression"**, *Current Bioinformatics*, Volume 9, Issue 3, May 2014, https://www.researchgate.net/publication/263474675_Trends_in_Genome_Compression  
 
 **[3]** Whitehead, R. Fletcher. (1994). **"An exploration of dynamic Markov compression"**, https://ir.canterbury.ac.nz/handle/10092/9572  
+
+**[4]** Langdon, Glen G. **"An introduction to arithmetic coding"**, IBM Journal of Research and Development 28.2 (1984): 135-149, https://ieeexplore.ieee.org/abstract/document/5390377
