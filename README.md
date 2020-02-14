@@ -10,10 +10,7 @@ The  Jupyter Notebooks in the repository contain further information
 - **`dynamic-markov-compression.ipynb`** - Implements ***dynamic Markov compression*** algorithm proposed in the paper by G. V. Cormack and R. N. Horspool [<sup>[1]</sup>](#1) to find the compression ratio on the genomic data of a dengue virus `data/dengue.fa`. Visualizations made using the `HOMarkov` library.
 - **`markov-arithmetic-implementation.ipynb`** - Custom personal implementation of a k-th order Markov chain to compress a string using arithmetic coding.
 
-
-## Dynamic Markov Compression
-
-Dynamic Markov Compression (DMC) uses predictive arithmetic coding similar to the prediction by partial matching (PPM), except that the input is predicted one bit at a time (rather than one byte at a time). DMC has a good compression ratio and moderate speed, similar to PPM, but requires somewhat more memory and is not widely implemented.
+**Dynamic Markov Compression** (DMC) uses predictive arithmetic coding similar to the prediction by partial matching (PPM), except that the input is predicted one bit at a time (rather than one byte at a time). DMC has a good compression ratio and moderate speed, similar to PPM, but requires somewhat more memory and is not widely implemented.
 
 Implementing ***Markov modeling*** and ***Guazzo's arithmetic coding*** together provides a powerful data compression method. Its advantage is that it is adaptive, i.e. messages can be encoded and decoded with a single pass through the data.
 
@@ -21,13 +18,143 @@ All compression algorithms rely on a priori assumption of the data. The new dire
 
 The decoder will generate the same statistical properties that the encoder is using for the data as the decoder is decoding it.
 
-## Arithmetic Coding
+## Theory
+
+Data compression can be divided into 2 parts
+- **Modeling** - Statistical Modeling, Markov Modeling (aka Finite Context Modeling)
+- **Encoding** - Huffman Coding, Arithmetic Coding
+
+**Modeling** is done to calculate probabilities for the encoding process.  
+**Encoding** does the actual compression. Fewer bits are used to determine the same data.
+
+**Markov chains** are mathematical systems that experience state transitions based on probabilistic rules.
+They can simply be defined as a Finite State Machine with probabilities on the edges of the nodes of the graph.
+
+A k-order Markov chain requires <b>4<sup>m</sup> states</b>. Hence the chains get memory intensive very quickly.
+
+First-order Markov chains look like the following. They have 4<sup>1</sup> = 4 states.
+
+<p align="center">
+  <img width="50%" src="https://github.com/rajatdiptabiswas/dna-compression/blob/master/images/first-order-chain.png">
+</p>
+<p align="center">
+  <i>First-order Markov Chain example</i>
+</p>
+
+Second order markov chains require 4<sup>2</sup> = 16 states.
+
+<p align="center">
+  <img width="60%" src="https://github.com/rajatdiptabiswas/dna-compression/blob/master/images/second-order-chain.png">
+</p>
+<p align="center">
+  <i>Second-order Markov Chain example</i>
+</p>
+
+This can be represented in a 16 x 4 table because all the states will need 4 transitions.
+
+<table align="center"><tr><th></th><th>P(A | row)</th><th>P(T | row)</th><th>P(C | row)</th><th>P(G | row)</th></tr><tr><td>AA</td><td> </td><td> </td><td> </td><td> </td></tr><tr><td>AT</td><td> </td><td> </td><td> </td><td> </td></tr><tr><td>...</td><td> </td><td> </td><td> </td><td> </td></tr><tr><td>GG</td><td> </td><td> </td><td> </td><td> </td></tr></table>
+
+The figure below shows how finite-context models are implemented. The rows of the table represent probability models at a given instant t. In this example, the particular model that is chosen for encoding a symbol depends on the last five encoded symbols (order-5 context).
+
+<p align="center">
+  <img width="50%" src="https://github.com/rajatdiptabiswas/dna-compression/blob/master/images/probability-table.png">
+</p>
+<p align="center">
+  <i>Simple example illustrating how finite-context models are implemented</i>
+</p>
+
+### Higher-order context models
+Contexts of 8th order tend to work best in most cases, better than everything except infinite order.
+
+While order-8 models achieve the best compression of the data itself, it's often been found that anything beyond order-5 is not worth it.
+
+### Cloning
+In actual models, all the states are not made in the implementation. Cloning is used.
+States are cloned to ‘remember’ previous states. If enough transitions occur (figured out using threshold values) through the new cloned state, the cloned state is kept in the final model.
+
+<p align="center">
+  <img width="60%" src="https://github.com/rajatdiptabiswas/dna-compression/blob/master/images/cloning.png">
+</p>
+<p align="center">
+  <i><b>(a)</b> Part of a Markov model; <b>(b)</b> the Markov model after "cloning"</i>
+</p>
+
+### Entropy
+For lossless compression there is a limit to how much one can compress the data. This is calculated using entropy.
+
+<p align="center">
+  <img width="50%" src="https://render.githubusercontent.com/render/math?math=Entropy%5C%20H(X)%20%3D%20-%5Csum%20p(X)%5Clog%20p(X)">
+</p>
+
+For equally probable 4 items the entropy is 2 bits. It cannot be lower than that. 00, 01, 10 and 11.
+
+However, if the probabilities are skewed for any one of the items, one can have fewer bytes than the other. This leads to savings.
+
+If the probability is high, the formula will give a lower value. 
+It is multiplied with a probability to give it a weight.
+We find the weighted average of all the characters in the string.
+
+
+### Modes of compression
+
+#### Static
+- Calculate probability
+- Generate variable length codes
+- Encode
+
+A static model is a fixed model that is known by both the compressor and the decompressor and does not depend on the data that is being compressed. For example, the frequencies of symbols in the English language.
+
+#### Semi-static
+A semi-adaptive or semi-static model is a fixed model that is constructed from the data to be compressed. For example, the symbol frequencies computed from the text to be compressed can be used as the model. The model has to be included as a part of the compressed data.
+
+#### Adaptive/Dynamic
+- Read symbol
+- Generate current variable length codes
+- Update variable length codes
+
+An adaptive model changes during the compression. At a given point in compression, the model is a function of the previously compressed part of the data. Since that part of the data is available to the decompressor at the corresponding point in decompression, there is no need to store the model.
+
+The only two things that matter are making sure that 
+1) the model attempts to accurately predict the probability when a character will appear, and 
+2) the encoder and decoder have identical models at all times.
+
+<p align="center">
+  <img width="95%" src="https://github.com/rajatdiptabiswas/dna-compression/blob/master/images/frequency-calculation.png">
+</p>
+<p align="center">
+  <i>Symbol frequency calculation example</i>
+</p>
+
+### Calculate probabilities
+First a frequency table needs to be calculated. For each context, the probabilities are calculated using the formula. (n<sub>A</sub> is the frequency of A in the context)
+
+<b>P(A | context) = (n<sub>A</sub> + c) / (n<sub>A</sub> + n<sub>T</sub> + n<sub>C</sub> + n<sub>G</sub> + 4c)</b>
+
+0 probabilities cause problems further down the line. For this fact, a value c is used. The parameter c controls how much probability is assigned to unseen (but possible) events, and plays a key role in the case of high-order models.
+
+### Encoding
+Once the probabilities are calculated, they are used to encode the string to compress.
+
+In Huffman coding, the smaller bits are assigned to higher probable symbols.
+
+In arithmetic coding (the most widely used compression these days), a single decimal number in the range of 0 to 1 is assigned to the whole string. The longer the string the more number of digits after the decimal.
+
+The decimal value is then required to be efficiently stored in computer memory. This is a different research topic in itself. 
+
+#### Arithmetic Coding
 
 Arithmetic coding is a data compression technique that encodes data by creating a code string which represents a fractional value on the number line between 0 and 1. The coding algorithm is symbolwise recursive; i.e. it operates upon and encodes (decodes) one data symbol per iteration or recursion. 
 
 On each recursion, the algorithm successively partitions an interval of the number line between 0 and 1, and retains one of the partitions as the new interval. Thus, the algorithm successively deals with smaller intervals, and the code string, viewed as a magnitude, lies in each of the nested intervals. 
 
 The data string is recovered by using magnitude comparisons on the code string to recreate how the encoder must have successively partitioned and retained each nested subinterval.
+
+<p align="center">
+  <img width="95%" src="https://github.com/rajatdiptabiswas/dna-compression/blob/master/images/arithmetic-coding.png">
+</p>
+<p align="center">
+  <i>Representation of the Arithmetic Coding Process with the interval scaled up at each stage</i>
+</p>
 
 ## Getting started
 
@@ -145,4 +272,26 @@ See also the list of [contributors](https://github.com/rajatdiptabiswas/dna-comp
 
 **[3]** Whitehead, R. Fletcher. (1994). **"An exploration of dynamic Markov compression"**, https://ir.canterbury.ac.nz/handle/10092/9572  
 
-**[4]** Langdon, Glen G. **"An introduction to arithmetic coding"**, IBM Journal of Research and Development 28.2 (1984): 135-149, https://ieeexplore.ieee.org/abstract/document/5390377
+**[4]** Langdon, Glen G. (1984). **"An introduction to arithmetic coding"**, *IBM Journal of Research and Development*, https://ieeexplore.ieee.org/abstract/document/5390377
+
+**[5]** P. Krishnamachari, **"The Joy of Finite Context Modeling"**, http://chiranjivi.tripod.com/Finite.html
+
+**[6]** D. Phong, **"Finite Context Modelling"**, http://www.hugi.scene.org/online/coding/hugi%2019%20-%20cofinite.htm
+
+**[7]** Ian & H, Ian & Neal, & M, Radford & Cleary, & G, John. (1987). **"Arithmetic Coding for Data Compression"**, *Communications of the ACM*, https://web.stanford.edu/class/ee398a/handouts/papers/WittenACM87ArithmCoding.pdf
+
+**[8]** M. Mahoney, **"Data Compression Explained"**, http://mattmahoney.net/dc/dce.html
+
+**[9]** **"Text Compression"**, https://www.cs.helsinki.fi/u/tpkarkka/opetus/12k/dct/lecture05.pdf
+
+**[10]** Pinho, Armando & Neves, António & Martins, Daniel & Bastos, Carlos & Ferreira, Paulo. (2010). **"Finite-Context Models for DNA Coding"**, https://pdfs.semanticscholar.org/905b/dfcdf93bdd511f7dcaded65c7aed07da7cef.pdf
+
+**[11]** M. Nelson. (2014). **"Data Compression With Arithmetic Coding"**, https://marknelson.us/posts/2014/10/19/data-compression-with-arithmetic-coding.html
+
+**[12]** M. Nelson. (1991). **"Arithmetic Coding + Statistical Modeling = Data Compression"**, https://marknelson.us/posts/1991/02/01/arithmetic-coding-statistical-modeling-data-compression.html
+
+**[13]** Howard, Paul & Vitter, Jeffrey. (1994). **"Practical Implementations of Arithmetic Coding"**, https://www.cc.gatech.edu/~jarek/courses/7491/Arithmetic2.pdf
+
+**[14]** GeeksforGeeks, **"Floating Point Representation"**, https://www.geeksforgeeks.org/floating-point-representation-basics/
+
+**[15]** Cprogramming.com, **"Floating point number representation"**, https://www.cprogramming.com/tutorial/floating_point/understanding_floating_point_representation.html
